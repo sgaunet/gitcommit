@@ -20,26 +20,16 @@ type UserError struct {
 	Hint    string
 }
 
-// Error implements the error interface.
-func (e *UserError) Error() string {
-	if e.Details != "" && e.Hint != "" {
-		return fmt.Sprintf("Error: %s\n\n%s\n\n%s", e.Message, e.Details, e.Hint)
-	}
-	if e.Details != "" {
-		return fmt.Sprintf("Error: %s\n\n%s", e.Message, e.Details)
-	}
-	if e.Hint != "" {
-		return fmt.Sprintf("Error: %s\n\n%s", e.Message, e.Hint)
-	}
-	return fmt.Sprintf("Error: %s", e.Message)
-}
-
 // NewInvalidDateFormatError creates an error for invalid date format.
 func NewInvalidDateFormatError(provided string) *UserError {
 	return &UserError{
 		Type:    "InvalidDateFormat",
 		Message: "Invalid date format",
-		Details: fmt.Sprintf("Expected format: YYYY-MM-DD HH:MM:SS\nExample:         2025-02-05 20:19:19\n\nYou provided:    %s", provided),
+		Details: fmt.Sprintf(
+			"Expected format: YYYY-MM-DD HH:MM:SS\nExample:         2025-02-05 20:19:19\n\n"+
+				"You provided:    %s",
+			provided,
+		),
 	}
 }
 
@@ -58,7 +48,8 @@ func NewNoRepositoryError() *UserError {
 		Type:    "NoRepository",
 		Message: "Not a Git repository",
 		Details: "The current directory is not inside a Git repository.",
-		Hint:    "To fix this:\n  - Navigate to a Git repository: cd /path/to/repo\n  - Or initialize a new repository: git init",
+		Hint: "To fix this:\n  - Navigate to a Git repository: cd /path/to/repo\n" +
+			"  - Or initialize a new repository: git init",
 	}
 }
 
@@ -68,7 +59,8 @@ func NewChronologyViolationError(providedDate, lastCommitDate string, equal bool
 	hint := "Commits must be dated after the last commit to maintain chronological order."
 
 	if equal {
-		hint = "Commits must be dated AFTER the last commit (not equal).\nSuggestion: Try adding 1 second to your date."
+		hint = "Commits must be dated AFTER the last commit (not equal).\n" +
+			"Suggestion: Try adding 1 second to your date."
 	}
 
 	return &UserError{
@@ -84,8 +76,9 @@ func NewGitCommandError(gitError string) *UserError {
 	return &UserError{
 		Type:    "GitCommandError",
 		Message: "Git commit failed",
-		Details: fmt.Sprintf("Git error: %s", gitError),
-		Hint:    "Possible solutions:\n  - Stage your changes: git add <files>\n  - Check if changes exist: git status",
+		Details: "Git error: " + gitError,
+		Hint: "Possible solutions:\n  - Stage your changes: git add <files>\n" +
+			"  - Check if changes exist: git status",
 	}
 }
 
@@ -94,7 +87,28 @@ func NewMissingArgumentsError(expected, received int) *UserError {
 	return &UserError{
 		Type:    "MissingArguments",
 		Message: "Missing required arguments",
-		Details: fmt.Sprintf("Usage: gitcommit <date> <message>\n\nExpected: %d arguments\nReceived: %d argument(s)", expected, received),
-		Hint:    "Examples:\n  gitcommit \"2025-02-05 20:19:19\" \"Add new feature\"\n  gitcommit \"2025-12-31 23:59:59\" \"End of year commit\"\n\nRun 'gitcommit --help' for more information.",
+		Details: fmt.Sprintf(
+			"Usage: gitcommit <date> <message>\n\nExpected: %d arguments\nReceived: %d argument(s)",
+			expected,
+			received,
+		),
+		Hint: "Examples:\n" +
+			"  gitcommit \"2025-02-05 20:19:19\" \"Add new feature\"\n" +
+			"  gitcommit \"2025-12-31 23:59:59\" \"End of year commit\"\n\n" +
+			"Run 'gitcommit --help' for more information.",
 	}
+}
+
+// Error implements the error interface.
+func (e *UserError) Error() string {
+	if e.Details != "" && e.Hint != "" {
+		return "Error: " + e.Message + "\n\n" + e.Details + "\n\n" + e.Hint
+	}
+	if e.Details != "" {
+		return "Error: " + e.Message + "\n\n" + e.Details
+	}
+	if e.Hint != "" {
+		return "Error: " + e.Message + "\n\n" + e.Hint
+	}
+	return "Error: " + e.Message
 }

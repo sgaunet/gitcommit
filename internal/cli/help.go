@@ -1,10 +1,8 @@
 package cli
 
-import "fmt"
-
 // HelpText returns the formatted help text for the gitcommit tool.
 func HelpText() string {
-	return fmt.Sprintf(`gitcommit - Create Git commits with custom dates
+	return `gitcommit - Create Git commits with custom dates
 
 Usage:
   gitcommit <date> <message>
@@ -60,5 +58,5 @@ Error Messages:
 
 For more information, visit:
   https://github.com/sgaunet/gitcommit
-`)
+`
 }

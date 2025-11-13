@@ -1,12 +1,28 @@
 package git
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+)
+
+const (
+	// GitExitCodeNoCommits is the exit code returned by git log when there are no commits.
+	GitExitCodeNoCommits = 128
+)
+
+var (
+	// ErrNoCommits is returned when the repository has no commits.
+	ErrNoCommits = errors.New("no commits in repository")
+	// ErrNotGitRepository is returned when the directory is not a Git repository.
+	ErrNotGitRepository = errors.New("not a git repository")
+	// ErrGitDirNotFound is returned when the .git directory cannot be found.
+	ErrGitDirNotFound = errors.New(".git directory not found")
 )
 
 // Repository represents a Git repository and its properties.
@@ -22,7 +38,7 @@ type Repository struct {
 // It searches up the directory tree for a .git directory.
 func IsGitRepository() bool {
 	// Try using git rev-parse to check if we're in a git repository
-	cmd := exec.Command("git", "rev-parse", "--git-dir")
+	cmd := exec.CommandContext(context.Background(), "git", "rev-parse", "--git-dir")
 	if err := cmd.Run(); err != nil {
 		return false
 	}
@@ -33,14 +49,13 @@ func IsGitRepository() bool {
 // Returns an error if there are no commits or if not in a Git repository.
 func GetLastCommitDate() (time.Time, error) {
 	// Use git log to get the last commit date in RFC3339 format
-	cmd := exec.Command("git", "log", "-1", "--format=%aI")
+	cmd := exec.CommandContext(context.Background(), "git", "log", "-1", "--format=%aI")
 	output, err := cmd.Output()
 	if err != nil {
 		// Check if it's because there are no commits
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			if exitErr.ExitCode() == 128 {
-				return time.Time{}, fmt.Errorf("no commits in repository")
-			}
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == GitExitCodeNoCommits {
+			return time.Time{}, ErrNoCommits
 		}
 		return time.Time{}, fmt.Errorf("failed to get last commit date: %w", err)
 	}
@@ -48,7 +63,7 @@ func GetLastCommitDate() (time.Time, error) {
 	// Parse the date
 	dateStr := strings.TrimSpace(string(output))
 	if dateStr == "" {
-		return time.Time{}, fmt.Errorf("no commits in repository")
+		return time.Time{}, ErrNoCommits
 	}
 
 	commitDate, err := time.Parse(time.RFC3339, dateStr)
@@ -69,7 +84,7 @@ func NewRepository() *Repository {
 
 	if isValid {
 		// Get the repository root path
-		cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+		cmd := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel")
 		if output, err := cmd.Output(); err == nil {
 			repo.Path = strings.TrimSpace(string(output))
 		}
@@ -81,10 +96,10 @@ func NewRepository() *Repository {
 // GetRepositoryRoot returns the root path of the Git repository.
 // Returns an error if not in a Git repository.
 func GetRepositoryRoot() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel")
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("not a git repository")
+		return "", ErrNotGitRepository
 	}
 
 	return strings.TrimSpace(string(output)), nil
@@ -92,7 +107,7 @@ func GetRepositoryRoot() (string, error) {
 
 // HasCommits checks if the repository has any commits.
 func HasCommits() bool {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd := exec.CommandContext(context.Background(), "git", "rev-parse", "HEAD")
 	return cmd.Run() == nil
 }
 
@@ -100,7 +115,7 @@ func HasCommits() bool {
 // Returns a Repository instance and an error if validation fails.
 func ValidateRepository() (*Repository, error) {
 	if !IsGitRepository() {
-		return nil, fmt.Errorf("not a git repository")
+		return nil, ErrNotGitRepository
 	}
 
 	repo := NewRepository()
@@ -111,7 +126,7 @@ func ValidateRepository() (*Repository, error) {
 func GetGitDirectory() (string, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get current directory: %w", err)
 	}
 
 	// Search up the directory tree for .git
@@ -126,7 +141,7 @@ func GetGitDirectory() (string, error) {
 		parent := filepath.Dir(dir)
 		if parent == dir {
 			// Reached root without finding .git
-			return "", fmt.Errorf(".git directory not found")
+			return "", ErrGitDirNotFound
 		}
 		dir = parent
 	}

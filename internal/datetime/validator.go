@@ -31,11 +31,11 @@ type ValidationResult struct {
 //   - lastCommitDate: The date of the last commit (nil if no previous commits)
 //
 // Returns:
-//   - valid: true if the date is valid, false otherwise
-//   - errorType: empty string if valid, or one of:
+//   - bool: true if the date is valid, false otherwise
+//   - string: empty string if valid, or one of:
 //   - "chronology_violation": date is before last commit
 //   - "chronology_violation_equal": date is equal to last commit
-func ValidateChronology(commitDate time.Time, lastCommitDate *time.Time) (valid bool, errorType string) {
+func ValidateChronology(commitDate time.Time, lastCommitDate *time.Time) (bool, string) {
 	// If there's no last commit, any date is valid
 	if lastCommitDate == nil {
 		return true, ""

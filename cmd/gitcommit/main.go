@@ -1,3 +1,4 @@
+// Package main provides the entry point for the gitcommit CLI tool.
 package main
 
 import (

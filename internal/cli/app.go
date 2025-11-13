@@ -1,3 +1,4 @@
+// Package cli provides the command-line interface logic and orchestration for gitcommit.
 package cli
 
 import (
@@ -39,30 +40,61 @@ func (a *App) Run() error {
 	slog.Debug("Git repository detected")
 
 	// Step 2: Get last commit date (if any)
-	var lastCommitDate *time.Time
-	if git.HasCommits() {
-		lastDate, err := git.GetLastCommitDate()
-		if err != nil {
-			slog.Warn("Could not retrieve last commit date", "error", err)
-		} else {
-			lastCommitDate = &lastDate
-			slog.Debug("Last commit date retrieved", "date", lastDate)
-		}
-	} else {
-		slog.Debug("No previous commits in repository")
-	}
+	lastCommitDate := a.getLastCommitDate()
 
-	// Step 3: Parse the date
-	parsedDate, err := datetime.ParseDate(request.InputDate)
+	// Step 3: Parse and validate the date
+	parsedDate, err := a.parseAndValidateDate(request.InputDate, lastCommitDate)
 	if err != nil {
-		slog.Error("Date parsing failed", "error", err)
-		return NewInvalidDateFormatError(request.InputDate)
+		return err
 	}
 	request.ParsedDate = parsedDate
 
+	// Step 4: Format the date for Git
+	gitFormattedDate := datetime.FormatForGit(parsedDate)
+	request.GitFormattedDate = gitFormattedDate
+	slog.Debug("Date formatted for Git", "formatted", gitFormattedDate)
+
+	// Step 5: Execute the commit
+	if err := git.ExecuteCommit(gitFormattedDate, request.CommitMessage); err != nil {
+		slog.Error("Git commit failed", "error", err)
+		return NewGitCommandError(err.Error())
+	}
+
+	// Step 6: Display success message
+	fmt.Println(FormatSuccessMessage(gitFormattedDate))
+	slog.Info("Commit created successfully")
+	return nil
+}
+
+// getLastCommitDate retrieves the last commit date from the repository.
+func (a *App) getLastCommitDate() *time.Time {
+	if !git.HasCommits() {
+		slog.Debug("No previous commits in repository")
+		return nil
+	}
+
+	lastDate, err := git.GetLastCommitDate()
+	if err != nil {
+		slog.Warn("Could not retrieve last commit date", "error", err)
+		return nil
+	}
+
+	slog.Debug("Last commit date retrieved", "date", lastDate)
+	return &lastDate
+}
+
+// parseAndValidateDate parses and validates the commit date.
+func (a *App) parseAndValidateDate(dateStr string, lastCommitDate *time.Time) (time.Time, error) {
+	// Parse the date
+	parsedDate, err := datetime.ParseDate(dateStr)
+	if err != nil {
+		slog.Error("Date parsing failed", "error", err)
+		return time.Time{}, NewInvalidDateFormatError(dateStr)
+	}
+
 	slog.Debug("Date parsed successfully", "parsed", parsedDate)
 
-	// Step 4: Validate chronology
+	// Validate chronology
 	if lastCommitDate != nil {
 		valid, errorType := datetime.ValidateChronology(parsedDate, lastCommitDate)
 		if !valid {
@@ -72,7 +104,7 @@ func (a *App) Run() error {
 				"errorType", errorType)
 
 			equal := errorType == "chronology_violation_equal"
-			return NewChronologyViolationError(
+			return time.Time{}, NewChronologyViolationError(
 				datetime.FormatForGit(parsedDate),
 				datetime.FormatForGit(*lastCommitDate),
 				equal,
@@ -81,22 +113,5 @@ func (a *App) Run() error {
 	}
 
 	slog.Debug("Chronology validation passed")
-
-	// Step 5: Format the date for Git
-	gitFormattedDate := datetime.FormatForGit(parsedDate)
-	request.GitFormattedDate = gitFormattedDate
-
-	slog.Debug("Date formatted for Git", "formatted", gitFormattedDate)
-
-	// Step 6: Execute the commit
-	if err := git.ExecuteCommit(gitFormattedDate, request.CommitMessage); err != nil {
-		slog.Error("Git commit failed", "error", err)
-		return NewGitCommandError(err.Error())
-	}
-
-	// Step 7: Display success message
-	fmt.Println(FormatSuccessMessage(gitFormattedDate))
-
-	slog.Info("Commit created successfully")
-	return nil
+	return parsedDate, nil
 }

@@ -1,6 +1,9 @@
+// Package git provides Git repository operations and commit execution for gitcommit.
 package git
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,12 +21,12 @@ import (
 // Returns an error if the git commit command fails.
 func ExecuteCommit(gitFormattedDate, message string) error {
 	// Prepare git commit command
-	cmd := exec.Command("git", "commit", "-m", message)
+	cmd := exec.CommandContext(context.Background(), "git", "commit", "-m", message)
 
 	// Set environment variables for commit dates
 	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("GIT_AUTHOR_DATE=%s", gitFormattedDate),
-		fmt.Sprintf("GIT_COMMITTER_DATE=%s", gitFormattedDate),
+		"GIT_AUTHOR_DATE="+gitFormattedDate,
+		"GIT_COMMITTER_DATE="+gitFormattedDate,
 	)
 
 	// Capture output for error reporting
@@ -33,7 +36,8 @@ func ExecuteCommit(gitFormattedDate, message string) error {
 	// Execute the commit
 	if err := cmd.Run(); err != nil {
 		// Try to get more details about the error
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
 			// Git command failed, return a more informative error
 			return fmt.Errorf("git commit failed with exit code %d: %w", exitErr.ExitCode(), err)
 		}

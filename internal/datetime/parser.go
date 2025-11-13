@@ -1,8 +1,14 @@
 package datetime
 
 import (
+	"errors"
 	"fmt"
 	"time"
+)
+
+var (
+	// ErrInvalidCalendarDate is returned when a date doesn't exist in the calendar.
+	ErrInvalidCalendarDate = errors.New("invalid calendar date")
 )
 
 // ParseDate parses a date string in the format "YYYY-MM-DD HH:MM:SS" and returns a time.Time.
@@ -22,7 +28,7 @@ func ParseDate(dateStr string) (time.Time, error) {
 	// This catches cases like "2025-02-30" which might parse but be invalid
 	formatted := parsedTime.Format(InputDateLayout)
 	if formatted != dateStr {
-		return time.Time{}, fmt.Errorf("invalid calendar date %q", dateStr)
+		return time.Time{}, fmt.Errorf("%w: %q", ErrInvalidCalendarDate, dateStr)
 	}
 
 	return parsedTime, nil

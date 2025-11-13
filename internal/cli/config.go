@@ -1,5 +1,10 @@
 package cli
 
+const (
+	// RequiredArguments is the number of arguments required for normal operation.
+	RequiredArguments = 2
+)
+
 // Config holds the configuration for the CLI application.
 type Config struct {
 	// Version is the semantic version of the tool.
@@ -30,8 +35,8 @@ func (c *Config) Validate() error {
 	}
 
 	// Normal operation requires exactly 2 arguments: date and message
-	if len(c.Args) != 2 {
-		return NewMissingArgumentsError(2, len(c.Args))
+	if len(c.Args) != RequiredArguments {
+		return NewMissingArgumentsError(RequiredArguments, len(c.Args))
 	}
 
 	return nil
@@ -47,7 +52,7 @@ func (c *Config) GetDate() string {
 
 // GetMessage returns the commit message argument.
 func (c *Config) GetMessage() string {
-	if len(c.Args) >= 2 {
+	if len(c.Args) >= RequiredArguments {
 		return c.Args[1]
 	}
 	return ""
