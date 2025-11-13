@@ -1,0 +1,61 @@
+version: 2
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/gitcommit
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "6"
+      - "7"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    id: lin
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    formats: ['binary']
+    files:
+      - README.md
+      - LICENSE
+
+brews:
+  - homepage: 'https://github.com/sgaunet/gitcommit'
+    description: ''
+    directory: Formula
+    commit_author:
+      name: sgaunet
+      email: 1552102+sgaunet@users.noreply.github.com
+    repository:
+      owner: sgaunet
+      name: homebrew-tools
+      # Token with 'repo' scope is required for pushing to a different repository
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
+    url_template: 'https://github.com/sgaunet/gitcommit/releases/download/{{ .Tag }}/{{ .ArtifactName }}'
+    install: |
+      bin.install "{{ .ArtifactName }}" => "gitcommit"
+    test: |
+      system "#{bin}/gitcommit", "--help"
