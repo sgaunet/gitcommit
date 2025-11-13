@@ -47,3 +47,11 @@ tasks:
       - echo "Downloading dependencies..."
       - go mod download
       - go mod tidy
+
+  snapshot:
+    cmds:
+      - GITLAB_TOKEN="" goreleaser --clean --snapshot
+    
+  release:
+    cmds:
+      - GITLAB_TOKEN="" goreleaser --clean --skip validate
