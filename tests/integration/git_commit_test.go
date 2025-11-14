@@ -28,8 +28,8 @@ func setupTestRepo(t *testing.T) string {
 
 	// Configure Git user (required for commits)
 	configCmds := [][]string{
-		{"config", "user.name", "Test User"},
-		{"config", "user.email", "test@example.com"},
+		{"config", "--local", "user.name", "Test User"},
+		{"config", "--local", "user.email", "test@example.com"},
 	}
 	for _, args := range configCmds {
 		cmd := exec.Command("git", args...)
