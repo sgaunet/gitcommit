@@ -40,7 +40,7 @@ func TestHelpFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Get path to gitcommit binary
-			binaryPath := "../../build/gitcommit"
+			binaryPath := getBinaryPath(t)
 
 			// Run with help flag
 			cmd := exec.Command(binaryPath, tt.flags...)
