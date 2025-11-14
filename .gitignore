@@ -1,0 +1,10 @@
+# Go build output
+/gitcommit
+/cmd/gitcommit/gitcommit
+# Output of the go coverage tool
+*.out
+coverage.txt
+coverage.html
+# Build directories
+/dist/
+/build

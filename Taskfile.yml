@@ -1,0 +1,57 @@
+version: '3'
+
+vars:
+  BINARY_NAME: gitcommit
+  BUILD_DIR: ./build
+  MAIN_PATH: ./cmd/gitcommit
+
+tasks:
+  default:
+    desc: Display available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the binary
+    cmds:
+      - echo "Building {{.BINARY_NAME}}..."
+      - mkdir -p {{.BUILD_DIR}}
+      - "go build -o {{.BUILD_DIR}}/{{.BINARY_NAME}} -v {{.MAIN_PATH}}"
+      - "echo Build complete: {{.BUILD_DIR}}/{{.BINARY_NAME}}"
+
+  test:
+    desc: Run tests
+    cmds:
+      - "go test -v -race -count=1 ./..."
+
+  lint:
+    desc: Run linter
+    cmds:
+      - "golangci-lint run ./..."
+
+  fmt:
+    desc: Format code
+    cmds:
+      - "gofmt -s -w ."
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - go clean
+      - rm -rf {{.BUILD_DIR}}
+      - rm -f coverage.out coverage.html
+
+  deps:
+    desc: Download dependencies
+    cmds:
+      - echo "Downloading dependencies..."
+      - go mod download
+      - go mod tidy
+
+  snapshot:
+    cmds:
+      - GITLAB_TOKEN="" goreleaser --clean --snapshot
+    
+  release:
+    cmds:
+      - GITLAB_TOKEN="" goreleaser --clean --skip validate
