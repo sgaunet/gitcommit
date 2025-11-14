@@ -20,10 +20,14 @@ type Config struct {
 	Args []string
 }
 
-// NewConfig creates a new Config with default values.
-func NewConfig() *Config {
+// NewConfig creates a new Config with the specified version.
+func NewConfig(version string) *Config {
+	// If version is empty, use a default
+	if version == "" {
+		version = "dev"
+	}
 	return &Config{
-		Version: "1.0.0",
+		Version: version,
 	}
 }
 

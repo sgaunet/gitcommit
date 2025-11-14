@@ -10,6 +10,9 @@ import (
 	"github.com/sgaunet/gitcommit/internal/cli"
 )
 
+// version is set via ldflags during build.
+var version = "dev"
+
 func main() {
 	// Setup structured logging with slog
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
@@ -18,7 +21,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	// Create configuration
-	config := cli.NewConfig()
+	config := cli.NewConfig(version)
 
 	// Parse command-line flags
 	flag.BoolVar(&config.ShowHelp, "help", false, "Show help message")
@@ -32,7 +35,7 @@ func main() {
 
 	// Handle --version flag
 	if config.ShowVersion {
-		fmt.Printf("gitcommit version %s\n", config.Version)
+		fmt.Printf("%s\n", config.Version)
 		os.Exit(cli.ExitSuccess)
 	}
 

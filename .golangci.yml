@@ -20,3 +20,5 @@ linters:
     - noinlineerr
     # Intentionally using time.Local for user's local timezone
     - gosmopolitan
+    # strings.SplitSeq doesn't exist in Go 1.21
+    - modernize
