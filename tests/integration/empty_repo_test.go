@@ -21,13 +21,13 @@ func TestEmptyRepository(t *testing.T) {
 	}
 
 	// Configure git user
-	configEmailCmd := exec.Command("git", "config", "user.email", "test@test.com")
+	configEmailCmd := exec.Command("git", "config", "--local", "user.email", "test@test.com")
 	configEmailCmd.Dir = tmpDir
 	if err := configEmailCmd.Run(); err != nil {
 		t.Fatalf("Failed to configure git user.email: %v", err)
 	}
 
-	configNameCmd := exec.Command("git", "config", "user.name", "Test User")
+	configNameCmd := exec.Command("git", "config", "--local", "user.name", "Test User")
 	configNameCmd.Dir = tmpDir
 	if err := configNameCmd.Run(); err != nil {
 		t.Fatalf("Failed to configure git user.name: %v", err)
