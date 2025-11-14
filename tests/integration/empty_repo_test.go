@@ -21,8 +21,17 @@ func TestEmptyRepository(t *testing.T) {
 	}
 
 	// Configure git user
-	exec.Command("git", "config", "user.email", "test@test.com").Run()
-	exec.Command("git", "config", "user.name", "Test User").Run()
+	configEmailCmd := exec.Command("git", "config", "user.email", "test@test.com")
+	configEmailCmd.Dir = tmpDir
+	if err := configEmailCmd.Run(); err != nil {
+		t.Fatalf("Failed to configure git user.email: %v", err)
+	}
+
+	configNameCmd := exec.Command("git", "config", "user.name", "Test User")
+	configNameCmd.Dir = tmpDir
+	if err := configNameCmd.Run(); err != nil {
+		t.Fatalf("Failed to configure git user.name: %v", err)
+	}
 
 	// Create a test file
 	testFile := filepath.Join(tmpDir, "test.txt")
