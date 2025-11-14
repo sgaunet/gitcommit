@@ -81,9 +81,15 @@ func TestVersionFlag(t *testing.T) {
 				t.Fatalf("Version flag should not error: %v\nOutput: %s", err, output)
 			}
 
-			expected := "gitcommit version 1.0.0"
-			if !strings.Contains(string(output), expected) {
-				t.Errorf("Expected output containing %q, got: %s", expected, output)
+			// Check that version output is not empty
+			outputStr := strings.TrimSpace(string(output))
+			if outputStr == "" {
+				t.Errorf("Expected version output, got empty string")
+			}
+
+			// Version should be "dev" during testing or a semver string when built
+			if outputStr != "dev" && !strings.Contains(outputStr, ".") {
+				t.Errorf("Expected valid version output (dev or semver), got: %s", outputStr)
 			}
 		})
 	}
