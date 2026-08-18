@@ -1,6 +1,5 @@
 # gitcommit - Git Commit Date Setter
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/sgaunet/gitcommit)](https://goreportcard.com/report/github.com/sgaunet/gitcommit)
 [![GitHub release](https://img.shields.io/github/release/sgaunet/gitcommit.svg)](https://github.com/sgaunet/gitcommit/releases/latest)
 ![GitHub Downloads](https://img.shields.io/github/downloads/sgaunet/gitcommit/total)
 ![Coverage Badge](https://raw.githubusercontent.com/wiki/sgaunet/gitcommit/coverage-badge.svg)
