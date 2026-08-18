@@ -20,8 +20,9 @@ import (
 //
 // Returns an error if the git commit command fails.
 func ExecuteCommit(gitFormattedDate, message string) error {
-	// Prepare git commit command
-	cmd := exec.CommandContext(context.Background(), "git", "commit", "-m", message)
+	// Prepare git commit command. The binary and flags are constants and message is
+	// passed as a discrete argv element, so no shell interpolation can occur.
+	cmd := exec.CommandContext(context.Background(), "git", "commit", "-m", message) //nolint:gosec // G204: no shell
 
 	// Set environment variables for commit dates
 	cmd.Env = append(os.Environ(),
