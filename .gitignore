@@ -8,3 +8,4 @@ coverage.html
 # Build directories
 /dist/
 /build
+/govulncheck.sarif
