@@ -16,6 +16,9 @@ linters:
     - forbidigo
     - varnamelen
     - exhaustruct
+    - exhaustruct_v5
+    # Deprecated; superseded by gomodguard_v2 (enabled via default: all)
+    - gomodguard
     - tagliatelle
     - noinlineerr
     # Intentionally using time.Local for user's local timezone
